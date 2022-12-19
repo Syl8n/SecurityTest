@@ -1,7 +1,5 @@
 package com.example.securitytest.member;
 
-import com.example.securitytest.member.Auth.SignIn;
-import com.example.securitytest.member.Auth.SignUp;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +21,6 @@ public class MemberService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username)
         throws UsernameNotFoundException {
-
         Member member = memberRepository.findById(username)
             .orElseThrow(() -> new UsernameNotFoundException("회원 정보가 일치하지 않습니다."));
 
