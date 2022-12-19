@@ -3,11 +3,14 @@ package com.example.securitytest.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.SignatureException;
 import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -70,10 +73,18 @@ public class JwtProvider {
 
     // 토큰에서 Claims 추출
     private Claims getClaims(String token) {
+        Claims claims;
         try {
-            return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
-        } catch (ExpiredJwtException e){
-            return e.getClaims();
+            claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
+        } catch (SignatureException signatureException) {
+            throw new BadCredentialsException("잘못된 비밀키", signatureException);
+        } catch (ExpiredJwtException expiredJwtException) {
+            throw new BadCredentialsException("만료된 토큰", expiredJwtException);
+        } catch (MalformedJwtException malformedJwtException) {
+            throw new BadCredentialsException("변조 및 위조된 토큰", malformedJwtException);
+        } catch (IllegalArgumentException illegalArgumentException) {
+            throw new BadCredentialsException("잘못된 입력값", illegalArgumentException);
         }
+        return claims;
     }
 }
