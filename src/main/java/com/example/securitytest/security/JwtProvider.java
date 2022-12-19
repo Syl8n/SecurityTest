@@ -6,10 +6,10 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,8 +27,9 @@ public class JwtProvider {
 
     private final UserDetailsService userDetailsService;
 
-    @Value("{spring.jwt.secret}")
-    private String secretKey;
+//    @Value("{spring.jwt.secret}")
+//    private String secretKey;
+    private final String secretKey = "SnNvbldlYlRva2VuQXV0aGVudGljYXRpb25XaXRoU3ByaW5nQm9vdFRlc3RQcm9qZWN0U2VjcmV0S2V5";
 
     public String generateToken(String username, List<String> roles) {
         // Claims 란 JWT의 payload 부분에 들어가는 데이터 단위라고 보면 된다.
@@ -76,14 +77,16 @@ public class JwtProvider {
         Claims claims;
         try {
             claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
-        } catch (SignatureException signatureException) {
-            throw new BadCredentialsException("잘못된 비밀키", signatureException);
-        } catch (ExpiredJwtException expiredJwtException) {
-            throw new BadCredentialsException("만료된 토큰", expiredJwtException);
-        } catch (MalformedJwtException malformedJwtException) {
-            throw new BadCredentialsException("변조 및 위조된 토큰", malformedJwtException);
-        } catch (IllegalArgumentException illegalArgumentException) {
-            throw new BadCredentialsException("잘못된 입력값", illegalArgumentException);
+        } catch (SignatureException e) {
+            throw new BadCredentialsException("잘못된 비밀키", e);
+        } catch (ExpiredJwtException e) {
+            throw new BadCredentialsException("만료된 토큰", e);
+        } catch (MalformedJwtException e) {
+            throw new BadCredentialsException("유효하지 않은 구성의 토큰", e);
+        } catch (UnsupportedJwtException e) {
+            throw new BadCredentialsException("지원되지 않는 형식이나 구성의 토큰", e);
+        } catch (IllegalArgumentException e) {
+            throw new BadCredentialsException("잘못된 입력값", e);
         }
         return claims;
     }
